@@ -1,0 +1,6 @@
+test/custom_files
+.git
+**/*.pbf
+**/*.tar
+**/*.sqlite
+*.md

@@ -1,0 +1,39 @@
+# be aware this won't test the auto-published
+# weekly 'latest' images (generated "manually")
+name: ci tests
+on:
+  push:
+    paths-ignore:
+      - '.gitignore'
+      - '**.md'
+      - '**.template'
+    branches:
+      - '[1-9]+.[0-9]+.[0-9]+'
+      - master
+  pull_request:
+    paths-ignore:
+      - '.gitignore'
+      - '**.md'
+      - '**.template'
+    branches:
+      - master
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build image
+        run: |
+          uid=$(id --user)
+          gid=$(id --group)
+          echo "Running one bare build and one with UID ${uid} and GID {$gid}"
+          docker build -t nilsnolde/valhalla:latest .
+          docker build -t nilsnolde/valhalla:latest_user_stuff --build-arg VALHALLA_UID=${uid} --build-arg VALHALLA_GID=${gid} .
+      - name: Test image
+        run : |
+          echo "Running with UID $(id --user) and GID $(id --group)"
+          sudo apt-get update > /dev/null
+          sudo apt-get install -y moreutils tree > /dev/null
+          sudo /bin/bash -c "./tests/test.sh nilsnolde/valhalla:latest"
+          /bin/bash -c "./tests/test.sh nilsnolde/valhalla:latest_user_stuff"
